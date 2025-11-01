@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Contract Review Agent</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>🤖 AI-Powered Contract Review System</h1>
+        <p>An automated legal assistant built using multi-agent AI architecture and a modern frontend.</p>
+    </header>
+
+    <section id="overview" class="fade-in">
+        <h2>📘 Project Overview</h2>
+        <p>
+            This project demonstrates a fully automated AI system designed to review and summarize contracts.  
+            The system uses a crew of specialized AI agents to parse, analyze, and interpret contract text,  
+            perform web research on unclear clauses, summarize key risks, and email the final summary to the user.
+        </p>
+    </section>
+
+    <section id="crew" class="fade-in">
+        <h2>🧩 Crew Architecture</h2>
+        <img src="assets/legalcrew.png" alt="Crew Architecture Diagram" class="screenshot">
+        <p>
+            The project uses <strong>CrewAI</strong> to orchestrate multiple agents that collaborate across tasks.  
+            Each agent has a defined role and objective to ensure accurate and efficient contract analysis.
+        </p>
+
+        <div class="cards">
+            <div class="card">
+                <h3>📄 Contract Parser Agent</h3>
+                <p>Extracts raw text from uploaded contracts and segments it into clauses for structured analysis.</p>
+            </div>
+            <div class="card">
+                <h3>⚖️ Risk Analysis Agent</h3>
+                <p>Identifies potential risks and obligations such as payment timelines, confidentiality, and termination clauses.</p>
+            </div>
+            <div class="card">
+                <h3>🌐 Web Research Agent</h3>
+                <p>Performs web lookups for unclear or uncommon legal terms to enrich understanding and provide context.</p>
+            </div>
+            <div class="card">
+                <h3>🧠 Summary Agent</h3>
+                <p>Generates a concise Markdown summary of the entire contract with risk highlights and key points.</p>
+            </div>
+            <div class="card">
+                <h3>📧 Email Delivery Agent</h3>
+                <p>Formats the summary and sends it directly to the user’s email address for easy access.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="frontend" class="fade-in">
+        <h2>💻 User Interface</h2>
+        <img src="assets/legal_agent_frontend.png" alt="Frontend Screenshot" class="screenshot">
+        <p>
+            A simple Flask-based web interface allows users to upload their contract (PDF) and enter an email address.  
+            Once submitted, a loading screen appears while the backend agents analyze the contract.
+        </p>
+    </section>
+
+    <section id="output" class="fade-in">
+        <h2>📬 Example Output</h2>
+        <img src="assets/legal_agent_output.png" alt="Email Output Example" class="screenshot">
+        <p>
+            The user receives a clean and well-structured email summary containing the key contract highlights, risks, and obligations.  
+            The entire process is automated — from parsing to final email delivery.
+        </p>
+    </section>
+
+    <footer>
+        <p>Created by Tyler Chia — November 2025 | Built with Python, Flask, and CrewAI</p>
+    </footer>
+
+    <script>
+        // Smooth fade-in animations on scroll
+        const sections = document.querySelectorAll('.fade-in');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        });
+        sections.forEach(section => observer.observe(section));
+    </script>
+</body>
+</html>
