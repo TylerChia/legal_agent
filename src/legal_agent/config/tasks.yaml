@@ -38,12 +38,3 @@ summarize_for_user:
     - A disclaimer at the end
   agent: user_advocate
 
-send_summary_email:
-  description: >
-    Take the completed contract summary and send it to the user's provided email address. 
-    Ensure the email is professional, includes the summary text, and has a short introduction 
-    and disclaimer. 
-    If possible, include the summary as both inline text and as a text attachment.
-  expected_output: >
-    Confirmation message indicating the email was sent successfully.
-  agent: email_agent

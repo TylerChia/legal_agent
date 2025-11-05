@@ -4,66 +4,160 @@
     <meta charset="UTF-8" />
     <title>Legal Contract Analyzer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background-color: #1e40af;
+        }
+
+        .mode-indicator {
+            margin: 10px 0;
+            font-weight: 600;
+            color: #2563eb;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
+    <form action="{{ url_for('logout') }}" method="get">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+
     <div class="container">
         <h1>📄 Legal Contract Analyzer</h1>
-        <p>Upload a contract PDF and receive a detailed summary via email.</p>
+        <p>Upload a contract PDF and receive a detailed summary via email. Select "Content Legal Analyzer" if you want a content creation focused report.</p>
+
+        <div class="mode-switch">
+            <button id="legalMode" class="mode-btn">Legal Analyzer ⚖️</button>
+            <button id="creatorMode" class="mode-btn">Content Legal Analyzer 🎬</button>
+        </div>
+        
+        <div id="modeIndicator" class="mode-indicator">
+            Current mode: <span id="currentMode">Legal Analyzer</span>
+        </div>
 
         <form id="uploadForm">
-            <label>Email Address</label>
+            <label>Email Address:</label>
             <input type="email" name="user_email" required placeholder="you@example.com">
 
-            <label>Contract File (PDF)</label>
+            <label>Contract File (PDF):</label>
             <input type="file" name="contract" accept=".pdf" required>
 
             <button type="submit">Analyze Contract</button>
         </form>
     </div>
 
-    <!-- Loading overlay -->
     <div id="loading" class="loading hidden">
         <div class="spinner"></div>
         <p>Analyzing your contract... This may take a minute ⏳</p>
     </div>
 
-    <!-- Toast notification -->
-    <div id="toast" class="toast hidden"></div>
+    <div id="toast" class="hidden">
+        <div class="toast-content">
+            <span id="toast-message">Message</span>
+            <button id="close-toast" class="close-btn">✖</button>
+        </div>
+    </div>
 
     <script>
         const form = document.getElementById('uploadForm');
         const loading = document.getElementById('loading');
         const toast = document.getElementById('toast');
-
+        const toastMessage = document.getElementById('toast-message');
+        const closeBtn = document.getElementById('close-toast');
+        const currentModeSpan = document.getElementById('currentMode');
+    
+        // Initialize UI on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await updateModeUI();
+        });
+    
+        async function updateModeUI() {
+            try {
+                const response = await fetch('/get_mode');
+                const data = await response.json();
+                const currentMode = data.mode;
+                
+                // Update button states
+                document.getElementById('legalMode').classList.toggle('active', currentMode === 'legal');
+                document.getElementById('creatorMode').classList.toggle('active', currentMode === 'creator');
+                
+                // Update mode indicator
+                currentModeSpan.textContent = currentMode === 'legal' ? 'Legal Analyzer' : 'Content Legal Analyzer';
+            } catch (error) {
+                console.error('Failed to get current mode:', error);
+            }
+        }
+    
+        // Handle contract upload form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             loading.classList.remove('hidden');
-
+    
             const formData = new FormData(form);
-
+    
             try {
                 const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
-
+    
                 const data = await response.json();
                 loading.classList.add('hidden');
-
+    
+                // Only show toast for contract processing results
                 showToast(data.message, data.success ? 'success' : 'error');
             } catch (err) {
                 loading.classList.add('hidden');
                 showToast('Something went wrong. Please try again.', 'error');
             }
         });
-
+    
         function showToast(message, type) {
-            toast.textContent = message;
-            toast.className = `toast ${type}`;
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 6000);
+            toast.className = '';
+            toast.classList.add(type);
+            toast.classList.remove('hidden');
+            toastMessage.textContent = message;
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 5000);
+            }
         }
-    </script>
+    
+        closeBtn.addEventListener('click', () => {
+            toast.classList.add('hidden');
+        });
+    
+        // Mode switching buttons
+        document.getElementById('legalMode').addEventListener('click', () => switchMode('legal'));
+        document.getElementById('creatorMode').addEventListener('click', () => switchMode('creator'));
+    
+        async function switchMode(mode) {
+            const res = await fetch(`/set_mode/${mode}`, { method: 'POST' });
+            if (res.ok) {
+                await updateModeUI();
+                // Do NOT show toast when switching modes
+                console.log(`Mode switched to: ${mode}`);
+            } else {
+                // Only show toast on failure
+                showToast('Failed to switch mode', 'error');
+            }
+        }
+    </script>    
 </body>
 </html>

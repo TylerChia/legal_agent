@@ -6,16 +6,14 @@ from pydantic import BaseModel, Field
 from typing import Type
 import os
 import time
-from typing import Type
 import smtplib
-import os
 import markdown2  # pip install markdown2
-
+from dotenv import load_dotenv
+load_dotenv()
 
 class SendEmailToolInput(BaseModel):
     recipient: str = Field(..., description="Recipient email address.")
     subject: str = Field(..., description="Subject of the email.")
-    body: str = Field(None, description="Body of the email message.")  # optional
 
 class SendEmailTool(BaseTool):
     name: str = "send_email"
@@ -25,12 +23,19 @@ class SendEmailTool(BaseTool):
     )
     args_schema: Type[BaseModel] = SendEmailToolInput
 
-    def _run(self, recipient: str, subject: str, body: str = None) -> str:
+    def _run(self, recipient: str, subject: str) -> str:
         try:
+            # 🧩 Normalize model inputs
+            if isinstance(recipient, dict):
+                recipient = recipient.get("description") or recipient.get("value") or str(recipient)
+            if isinstance(subject, dict):
+                subject = subject.get("description") or subject.get("value") or str(subject)
+
             sender_email = os.getenv("SENDER_EMAIL")
             sender_password = os.getenv("EMAIL_PASSWORD")
 
             if not sender_email or not sender_password:
+                print("!")
                 raise ValueError("Missing SENDER_EMAIL or EMAIL_PASSWORD environment variables.")
 
             # Wait for the summary file to appear

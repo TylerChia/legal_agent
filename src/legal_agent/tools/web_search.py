@@ -3,6 +3,8 @@ from typing import Type
 from pydantic import BaseModel, Field
 import requests
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class WebSearchToolInput(BaseModel):
     """Input schema for WebSearchTool."""
@@ -14,12 +16,24 @@ class WebSearchTool(BaseTool):
     description: str = (
         "Searches the web using the Tavily Search API and returns a concise summary "
         "of the top relevant results. Useful for retrieving definitions, examples, "
-        "and up-to-date information about a specific topic."
+        "and up-to-date information about a specific topic. " 
+        "Input must be a plain text query string — do not wrap it in JSON."
     )
     args_schema: Type[BaseModel] = WebSearchToolInput
 
+    def _parse_args(self, raw_args):
+        # This runs BEFORE Pydantic validation
+        if isinstance(raw_args, dict) and "query" in raw_args:
+            raw_args["query"] = str(raw_args["query"])  # force string
+        elif isinstance(raw_args, dict):
+            raw_args = {"query": str(list(raw_args.values())[0])}
+        return super()._parse_args(raw_args)
+
     def _run(self, query: str) -> str:
         """Perform a Tavily search and return summarized results."""
+        # Handle case where model sends a dict instead of str
+        if isinstance(query, dict):
+            query = query.get("description") or query.get("text") or str(query)
         try:
             # CrewAI sometimes passes a dict instead of string
             if isinstance(query, dict):

@@ -3,7 +3,7 @@ import sys
 import warnings
 import json
 from datetime import datetime
-from legal_agent.crew import LegalAgent
+from legal_agent.legal_crew import LegalAgent
 from datetime import date, datetime
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
@@ -33,7 +33,7 @@ def run():
     subject_line = "Contract Summary Report" + " " + str(today)
 
     try:
-        result = LegalAgent().crew().kickoff(inputs={"user_email": user_email, "subject_line": subject_line, "contract_text": contract_text})
+        result = LegalAgent().crew().kickoff(inputs={"user_email": user_email, "contract_text": contract_text})
 
         print("\n✅ Contract review completed successfully.")
         print("📄 Summary and risk report generated.\n")
