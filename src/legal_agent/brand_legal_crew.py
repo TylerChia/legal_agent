@@ -5,7 +5,7 @@ from typing import List
 from dotenv import load_dotenv
 from src.legal_agent.tools.web_search import WebSearchTool
 from src.legal_agent.tools.send_email import SendEmailTool
-
+from src.legal_agent.tools.google_calendar_tool import SimpleGoogleCalendarTool
 load_dotenv()
 
 ## make more tailored to content creation and brand deal contracts
@@ -110,6 +110,27 @@ class ContentCreatorLegalCrew():
             verbose=True
         )
 
+    @agent
+    def calendar_agent(self) -> Agent:
+        """Adds contract deliverables and deadlines to Google Calendar."""
+        return Agent(
+            role="Contract Calendar Manager",
+            goal=(
+                "Extract deliverable dates from parsed contract data and create Google Calendar events "
+                "with proper reminders. Only create events for deliverables that have clear due dates."
+            ),
+            backstory=(
+                "You are an organized calendar management specialist who helps creators "
+                "stay on top of their contract obligations by automatically adding "
+                "deliverables and due dates to their Google Calendar. You carefully review "
+                "parsed contract data to identify concrete deadlines and create professional "
+                "calendar events with appropriate descriptions and reminders."
+            ),
+            verbose=True,
+            tools=[SimpleGoogleCalendarTool()],
+            allow_delegation=False
+        )
+
 
 
     # === TASKS ===
@@ -176,8 +197,7 @@ class ContentCreatorLegalCrew():
                 "Output a JSON report summarizing each clause with fields:\n"
                 "- `clause_title`\n"
                 "- `risk_level`\n"
-                "- `risk_reason`\n"
-                "- `recommendation` (optional advice to mitigate the issue)"
+                "- `risk_reason`"
             ),
             expected_output=(
                 "A JSON object containing a list of clauses with their associated `risk_level`, "
@@ -197,7 +217,6 @@ class ContentCreatorLegalCrew():
                 "- Content ownership and usage rights (e.g., perpetual use, whitelisting)\n"
                 "- Exclusivity and competition restrictions\n"
                 "- Royalties, licensing, or revenue sharing\n"
-                "- FTC disclosure and advertising compliance\n"
                 "- Creator compensation norms and rights under influencer marketing law\n\n"
                 "Summarize your findings clearly and cite at least one credible, recent source (e.g., FTC.gov, major law firm blogs, creator advocacy sites)."
             ),
@@ -207,6 +226,37 @@ class ContentCreatorLegalCrew():
             agent=self.legal_researcher()
         )
 
+    @task
+    def add_deliverables_to_calendar(self) -> Task:
+        """Extract deliverable dates and add them to Google Calendar."""
+        return Task(
+            description=(
+                "Using the parsed contract information from previous tasks, identify all deliverables "
+                "that have specific due dates and create Google Calendar events for each one.\n\n"
+                "Process:\n"
+                "1. Review the parsed contract data for deliverables with clear due dates\n"
+                "2. For each deliverable with a valid date:\n"
+                "   - Create a calendar event with the deliverable title\n"
+                "   - Include brief contract context and brief details in the event description\n"
+                "   - Set the event date/time based on the due date\n"
+                "   - Invite the user ({user_email}) to the event\n"
+                "3. Skip any deliverables without specific dates\n"
+                "4. Provide a summary of events created\n\n"
+                "Important: Only create events for deliverables that have explicit due dates "
+                "mentioned in the contract. Do not assume or invent dates.\n\n"
+                "Contract context available from previous analysis."
+            ),
+            expected_output=(
+                "A summary report of calendar events created including:\n"
+                "- Number of events successfully created\n"
+                "- List of deliverables with their dates\n"
+                "- Google Calendar links for each event\n"
+                "- Any deliverables skipped due to missing dates\n"
+                "- Confirmation that the user was invited to all events"
+            ),
+            agent=self.calendar_agent(),
+            context_variables=["user_email"]
+        )
 
     @task
     def summarize_for_user(self) -> Task:
@@ -214,7 +264,9 @@ class ContentCreatorLegalCrew():
         return Task(
             description=(
                 "Using the parsed contract clauses and risk analysis, write a concise, friendly summary "
-                "for the influencer who received this brand deal. Do not make-up information that is not within the contract text. Include if available:\n\n"
+                "for the influencer who received this brand deal. Do not make-up information that is not within the contract text. "
+                "I would rather the output be more consise and summarized as succinctly as possible rather than being overly verbose. \n"
+                "Include if available:\n\n"
                 "1. A short overview of the brand partnership and purpose of the contract.\n"
                 "2. A list of **deliverables** (what the creator must produce: e.g. posts, videos, stories, etc.) "
                 "with any associated **deadlines or posting dates**.\n"
@@ -224,9 +276,7 @@ class ContentCreatorLegalCrew():
                 "   - Exclusivity or non-compete clauses\n"
                 "   - Usage rights or whitelisting permissions\n"
                 "   - Royalties, licensing, or perpetual usage terms\n"
-                "   - FTC or disclosure requirements\n"
-                "5. Actionable recommendations in plain English (e.g., “Double-check that payment terms are clear,” "
-                "“Consider negotiating limited usage rights,” etc.).\n\n"
+                "   - FTC or disclosure requirements\n\n"
                 "End the report with a clear disclaimer that this is not legal advice — "
                 "it is an educational summary to help the creator understand their deal."
             ),
@@ -236,12 +286,12 @@ class ContentCreatorLegalCrew():
                 "## Deliverables & Deadlines\n"
                 "## Payment Terms\n"
                 "## Legal & Risk Concerns\n"
-                "## Actionable Tips for the Creator\n"
                 "### Disclaimer: This summary is for informational purposes only and not legal advice."
             ),
             agent=self.user_advocate(),
             output_file="contract_summary.md"
         )
+
 
 
 
