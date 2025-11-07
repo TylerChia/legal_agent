@@ -128,7 +128,8 @@ class ContentCreatorLegalCrew():
             ),
             verbose=True,
             tools=[SimpleGoogleCalendarTool()],
-            allow_delegation=False
+            allow_delegation=False,
+            max_iterations=1 
         )
 
 
@@ -201,7 +202,7 @@ class ContentCreatorLegalCrew():
             ),
             expected_output=(
                 "A JSON object containing a list of clauses with their associated `risk_level`, "
-                "`risk_reason`, and optional `recommendation` for the creator."
+                "`risk_reason`"
             ),
             agent=self.risk_analyzer()
         )
