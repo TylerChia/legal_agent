@@ -17,6 +17,10 @@ import re
 
 load_dotenv()
 
+os.environ["CREWAI_TRACE"] = "0"
+os.environ["CREWAI_VERBOSE"] = "0"
+os.environ["CREWAI_INTERACTIVE"] = "0"
+
 app = Flask(__name__)
 # Use a fixed secret key for session consistency, but ensure it changes in production
 app.secret_key = os.getenv("SECRET_KEY") or "dev-secret-key-change-in-production"
@@ -159,6 +163,8 @@ def run_crew_with_timeout(crew, inputs, timeout=CREW_TIMEOUT):
     result_container = [None]
     def target():
         try:
+            import os
+            os.environ["CREWAI_INTERACTIVE"] = "0"
             result_container[0] = crew.kickoff(inputs=inputs)
         except Exception as e:
             result_container[0] = e
