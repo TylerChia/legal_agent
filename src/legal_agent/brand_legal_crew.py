@@ -46,7 +46,8 @@ class ContentCreatorLegalCrew():
                 "exclusivity, content ownership, licensing (perpetual/limited), attribution, moral clauses, "
                 "and termination/kill fees. Produce structured outputs that downstream agents can consume."
             ),
-            verbose=True
+            verbose=True,
+            interactive=False
         )
 
     @agent
@@ -65,7 +66,8 @@ class ContentCreatorLegalCrew():
                 "royalty clauses, and unfair deliverable obligations. You help creators protect their interests "
                 "by identifying and explaining potential pitfalls clearly."
             ),
-            verbose=True
+            verbose=True,
+            interactive=False
         )
 
     @agent
@@ -86,7 +88,8 @@ class ContentCreatorLegalCrew():
             ),
             verbose=True,
             tools=[WebSearchTool()],
-            allow_delegation=False
+            allow_delegation=False,
+            interactive=False
         )
 
 
@@ -107,7 +110,8 @@ class ContentCreatorLegalCrew():
                 "and potential legal risks — like exclusivity, perpetual usage rights, or content ownership — "
                 "in a way that’s informative but not legal advice."
             ),
-            verbose=True
+            verbose=True,
+            interactive=False
         )
 
     @agent
@@ -129,7 +133,8 @@ class ContentCreatorLegalCrew():
             verbose=True,
             tools=[SimpleGoogleCalendarTool()],
             allow_delegation=False,
-            max_iterations=1 
+            max_iterations=1,
+            interactive=False
         )
 
 
@@ -313,5 +318,7 @@ class ContentCreatorLegalCrew():
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            verbose=True
+            verbose=True,
+            interactive=False,  # ← CRITICAL: Disable interactive prompts in production
+            memory=False  # ← Optional: Disable memory to reduce complexity
         )

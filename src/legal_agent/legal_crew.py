@@ -27,7 +27,8 @@ class LegalAgent():
                 "You can quickly identify sections like payment terms, confidentiality, termination, "
                 "and liability, and rewrite them in structured, easy-to-parse text for further analysis."
             ),
-            verbose=True
+            verbose=True,
+            interactive=False
         )
 
 
@@ -44,7 +45,8 @@ class LegalAgent():
                 "You are a cautious and thorough legal analyst trained to spot red flags in agreements. "
                 "You flag any terms that might be unfair, vague, one-sided, or harmful to the user’s rights."
             ),
-            verbose=True
+            verbose=True,
+            interactive=False
         )
 
     @agent
@@ -62,7 +64,8 @@ class LegalAgent():
             ),
             verbose=True,
             tools=[WebSearchTool()], 
-            allow_delegation=False
+            allow_delegation=False,
+            interactive=False
         )
 
 
@@ -76,7 +79,8 @@ class LegalAgent():
                 "You are an empathetic communicator who translates legal findings into simple, actionable advice "
                 "for non-lawyers. You never provide legal advice — only educational summaries."
             ),
-            verbose=True
+            verbose=True,
+            interactive=False
         )
 
 
@@ -236,5 +240,7 @@ class LegalAgent():
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            verbose=True
+            verbose=True,
+            interactive=False,  # ← CRITICAL: Disable interactive prompts in production
+            memory=False  # ← Optional: Disable memory to reduce complexity
         )
