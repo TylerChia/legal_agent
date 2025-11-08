@@ -294,6 +294,8 @@ class ContentCreatorLegalCrew():
             description=(
                 "Using the parsed contract information from previous tasks, identify all deliverables "
                 "that have specific due dates and create Google Calendar events for each one.\n\n"
+                "IMPORTANT: Call the calendar tool ONCE for each deliverable. Do not call it multiple times.\n"
+                "If the tool says the event already exists, move to the next deliverable.\n\n"
                 "Process:\n"
                 "1. Review the parsed contract data for deliverables with clear due dates\n"
                 "2. For each deliverable with a valid date:\n"
@@ -301,12 +303,18 @@ class ContentCreatorLegalCrew():
                 "   - Include brief contract context and brief details in the event description\n"
                 "   - Set the event date/time based on the due date\n"
                 "   - Invite the user ({user_email}) to the event\n"
+                "   - Call the calendar tool ONCE\n"
+                "   - If it succeeds or says it exists, move on\n"
+                "   - Do NOT retry or call multiple times\n\n"
                 "3. Skip any deliverables without specific dates\n"
                 "4. Provide a summary of events created\n\n"
                 "Important: Only create events for deliverables that have explicit due dates "
                 "mentioned in the contract. Do not assume or invent dates.\n\n"
                 "Contract context available from previous analysis.\n"
                 "Once the invitation is sent, DO NOT try to send again. Task is complete."
+
+                
+                "User: {user_email}"
             ),
             expected_output=(
                 "A summary report of calendar events created including:\n"
