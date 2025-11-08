@@ -1,3 +1,8 @@
+import os
+os.environ["CREWAI_TELEMETRY"] = "false"
+from dotenv import load_dotenv
+load_dotenv()
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent

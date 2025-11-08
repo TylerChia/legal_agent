@@ -1,12 +1,16 @@
+import os
+os.environ["CREWAI_TELEMETRY"] = "false"
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from src.legal_agent.brand_legal_crew import ContentCreatorLegalCrew
 from src.legal_agent.legal_crew import LegalAgent
-import os
 import pdfplumber
 from datetime import date, datetime, timedelta
 import threading
 import time
-from dotenv import load_dotenv
+
 from werkzeug.security import check_password_hash
 import secrets
 import smtplib
@@ -19,10 +23,6 @@ import pytz
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-
-load_dotenv()
-
-os.environ["CREWAI_TELEMETRY"] = "false"
 
 app = Flask(__name__)
 # Use a fixed secret key for session consistency, but ensure it changes in production
