@@ -4,8 +4,6 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from dotenv import load_dotenv
 from src.legal_agent.tools.web_search import WebSearchTool
-from src.legal_agent.tools.send_email import SendEmailTool
-from src.legal_agent.tools.google_calendar_tool import SimpleGoogleCalendarTool
 load_dotenv()
 
 ## make more tailored to content creation and brand deal contracts
@@ -49,39 +47,25 @@ class ContentCreatorLegalCrew():
             verbose=True
         )
 
-    # @agent
-    # def risk_analyzer(self) -> Agent:
-    #     """Evaluates influencer-brand deal contracts for risks."""
-    #     return Agent(
-    #         role="Brand Deal Risk & Rights Analyst",
-    #         goal=(
-    #             "Identify and evaluate legal and business risks within influencer-brand contracts. "
-    #             "Highlight clauses that could negatively impact the creator’s rights, revenue, or creative control."
-    #             "Do not make-up information that is not within the text. "
-    #         ),
-    #         backstory=(
-    #             "You are an experienced contract reviewer specializing in influencer marketing and brand partnerships. "
-    #             "You understand common risks such as content ownership, exclusivity, perpetual usage rights, "
-    #             "royalty clauses, and unfair deliverable obligations. You help creators protect their interests "
-    #             "by identifying and explaining potential pitfalls clearly."
-    #         ),
-    #         verbose=True,
-    #     )
-
     @agent
     def risk_analyzer(self) -> Agent:
         """Evaluates influencer-brand deal contracts for risks."""
         return Agent(
             role="Brand Deal Risk & Rights Analyst",
             goal=(
-                "Quickly identify and evaluate legal and business risks within influencer-brand contracts. "
+                "Identify and evaluate legal and business risks within influencer-brand contracts. "
+                "Highlight clauses that could negatively impact the creator’s rights, revenue, or creative control."
                 "Do not make-up information that is not within the text. "
             ),
             backstory=(
-                "Fast risk assessment specialist."
+                "You are an experienced contract reviewer specializing in influencer marketing and brand partnerships. "
+                "You understand common risks such as content ownership, exclusivity, perpetual usage rights, "
+                "royalty clauses, and unfair deliverable obligations. You help creators protect their interests "
+                "by identifying and explaining potential pitfalls clearly."
             ),
             verbose=True,
         )
+
 
     # @agent
     # def legal_researcher(self) -> Agent:
@@ -141,27 +125,27 @@ class ContentCreatorLegalCrew():
             verbose=True
         )
 
-    @agent
-    def calendar_agent(self) -> Agent:
-        """Adds contract deliverables and deadlines to Google Calendar."""
-        return Agent(
-            role="Contract Calendar Manager",
-            goal=(
-                "Extract deliverable dates from parsed contract data and create Google Calendar events "
-                "with proper reminders. Only create events for deliverables that have clear due dates."
-            ),
-            backstory=(
-                "You are an organized calendar management specialist who helps creators "
-                "stay on top of their contract obligations by automatically adding "
-                "deliverables and due dates to their Google Calendar. You carefully review "
-                "parsed contract data to identify concrete deadlines and create professional "
-                "calendar events with appropriate descriptions and reminders."
-            ),
-            verbose=True,
-            tools=[SimpleGoogleCalendarTool()],
-            allow_delegation=False,
-            max_iter=1
-        )
+    # @agent
+    # def calendar_agent(self) -> Agent:
+    #     """Adds contract deliverables and deadlines to Google Calendar."""
+    #     return Agent(
+    #         role="Contract Calendar Manager",
+    #         goal=(
+    #             "Extract deliverable dates from parsed contract data and create Google Calendar events "
+    #             "with proper reminders. Only create events for deliverables that have clear due dates."
+    #         ),
+    #         backstory=(
+    #             "You are an organized calendar management specialist who helps creators "
+    #             "stay on top of their contract obligations by automatically adding "
+    #             "deliverables and due dates to their Google Calendar. You carefully review "
+    #             "parsed contract data to identify concrete deadlines and create professional "
+    #             "calendar events with appropriate descriptions and reminders."
+    #         ),
+    #         verbose=True,
+    #         tools=[SimpleGoogleCalendarTool()],
+    #         allow_delegation=False,
+    #         max_iter=1
+    #     )
 
 
 
@@ -178,7 +162,7 @@ class ContentCreatorLegalCrew():
                 "Required actions:\n"
                 "1) Identify and label key sections and clauses only if they are in the text, focusing on these categories:\n"
                 "   - Deliverables (what the creator must produce; include format, platform, and quantity)\n"
-                "   - Due dates and scheduling information for each deliverable\n"
+                "   - Due dates and scheduling information for each deliverable. Convert to Pacific Standard Time if necessary.\n"
                 "   - Payment terms (amounts, schedule, invoicing, tax responsibilities)\n"
                 "   - Ownership & Licensing\n"
                 "   - Exclusivity / non-compete / whitelist requirements\n"
@@ -212,43 +196,28 @@ class ContentCreatorLegalCrew():
         )
 
 
-    # @task
-    # def analyze_risks(self) -> Task:
-    #     """Evaluate influencer-brand contract clauses for potential legal or business risks."""
-    #     return Task(
-    #         description=(
-    #             "Examine the structured contract clauses produced by the previous step.\n\n"
-    #             "Do not make-up information that is not within the contract text. "
-    #             "For each clause, assess potential risks or concerns to the creator such as:\n"
-    #             "- **Ownership & Usage Rights**: Does the brand gain perpetual or exclusive rights to the content?\n"
-    #             "- **Exclusivity**: Does it prevent the creator from working with other brands in the same category?\n"
-    #             "- **Approval & Revisions**: Are there unreasonable approval or reshoot terms?\n"
-    #             "- **Royalties or Compensation**: Are payment terms vague or delayed?\n"
-    #             "- **Termination or Liability**: Are there penalties or clauses unfairly favoring the brand?\n\n"
-    #             "Rate each clause as Low, Medium, or High risk, and briefly explain why.\n"
-    #             "Output a JSON report summarizing each clause with fields:\n"
-    #             "- `clause_title`\n"
-    #             "- `risk_level`\n"
-    #             "- `risk_reason`"
-    #         ),
-    #         expected_output=(
-    #             "A JSON object containing a list of clauses with their associated `risk_level`, "
-    #             "`risk_reason`"
-    #         ),
-    #         agent=self.risk_analyzer()
-    #     )
-
     @task
     def analyze_risks(self) -> Task:
         """Evaluate influencer-brand contract clauses for potential legal or business risks."""
         return Task(
             description=(
-                "QUICKLY assess risks in the parsed contract data.\n"
-                "Focus on: ownership rights, exclusivity, payment risks.\n"
-                "Output: JSON with clause_title, risk_level, risk_reason"
+                "Examine the structured contract clauses produced by the previous step.\n\n"
+                "Do not make-up information that is not within the contract text. "
+                "For each clause, assess potential risks or concerns to the creator such as:\n"
+                "- **Ownership & Usage Rights**: Does the brand gain perpetual or exclusive rights to the content?\n"
+                "- **Exclusivity**: Does it prevent the creator from working with other brands in the same category?\n"
+                "- **Approval & Revisions**: Are there unreasonable approval or reshoot terms?\n"
+                "- **Royalties or Compensation**: Are payment terms vague or delayed?\n"
+                "- **Termination or Liability**: Are there penalties or clauses unfairly favoring the brand?\n\n"
+                "Rate each clause as Low, Medium, or High risk, and briefly explain why.\n"
+                "Output a JSON report summarizing each clause with fields:\n"
+                "- `clause_title`\n"
+                "- `risk_level`\n"
+                "- `risk_reason`"
             ),
             expected_output=(
-                "JSON with key risks"
+                "A JSON object containing a list of clauses with their associated `risk_level`, "
+                "`risk_reason`"
             ),
             agent=self.risk_analyzer()
         )
@@ -288,45 +257,68 @@ class ContentCreatorLegalCrew():
         )
 
     @task
-    def add_deliverables_to_calendar(self) -> Task:
-        """Extract deliverable dates and add them to Google Calendar."""
+    def extract_deliverables_for_calendar(self) -> Task:
+        """Extract deliverables and due dates for calendar integration."""
         return Task(
             description=(
-                "Using the parsed contract information from previous tasks, identify all deliverables "
-                "that have specific due dates and create Google Calendar events for each one.\n\n"
-                "IMPORTANT: Call the calendar tool ONCE for each deliverable. Do not call it multiple times.\n"
-                "If the tool says the event already exists, move to the next deliverable.\n\n"
-                "Process:\n"
-                "1. Review the parsed contract data for deliverables with clear due dates\n"
-                "2. For each deliverable with a valid date:\n"
-                "   - Create a calendar event with the deliverable title\n"
-                "   - Include brief contract context and brief details in the event description\n"
-                "   - Set the event date/time based on the due date\n"
-                "   - Invite the user ({user_email}) to the event\n"
-                "   - Call the calendar tool ONCE\n"
-                "   - If it succeeds or says it exists, move on\n"
-                "   - Do NOT retry or call multiple times\n\n"
-                "3. Skip any deliverables without specific dates\n"
-                "4. Provide a summary of events created\n\n"
-                "Important: Only create events for deliverables that have explicit due dates "
-                "mentioned in the contract. Do not assume or invent dates.\n\n"
-                "Contract context available from previous analysis.\n"
-                "Once the invitation is sent, DO NOT try to send again. Task is complete."
-
-                
-                "User: {user_email}"
+                "Extract ALL deliverables with clear due dates from the contract analysis.\n\n"
+                "For each deliverable, provide:\n"
+                "- summary: Brief title of the deliverable\n"
+                "- description: What needs to be delivered\n" 
+                "- start_date: Due date in YYYY-MM-DD format. Convert to Pacific Standard Time if necessary.\n"
+                "- user_email: {user_email}\n\n"
+                "Only include deliverables with explicit due dates mentioned in the contract.\n"
+                "Skip any without clear dates.\n"
+                "Format as a JSON array."
             ),
             expected_output=(
-                "A summary report of calendar events created including:\n"
-                "- Number of events successfully created\n"
-                "- List of deliverables with their dates\n"
-                "- Any deliverables skipped due to missing dates\n"
-                "- Confirmation that the user was invited to all events"
-                "Include the phrase '✅ Calendar updates complete' at the end of your output."
+                "JSON array of deliverables with 'summary', 'description','start_date', 'user_email'"
             ),
-            agent=self.calendar_agent(),
-            context_variables=["user_email"]
+            agent=self.researcher(),  # Use researcher since they already parse the contract
+            context_variables=["user_email"],
+            output_file="calendar_deliverables.json"
         )
+
+    # @task
+    # def add_deliverables_to_calendar(self) -> Task:
+    #     """Extract deliverable dates and add them to Google Calendar."""
+    #     return Task(
+    #         description=(
+    #             "Using the parsed contract information from previous tasks, identify all deliverables "
+    #             "that have specific due dates and create Google Calendar events for each one.\n\n"
+    #             "IMPORTANT: Call the calendar tool ONCE for each deliverable. Do not call it multiple times.\n"
+    #             "If the tool says the event already exists, move to the next deliverable.\n\n"
+    #             "Process:\n"
+    #             "1. Review the parsed contract data for deliverables with clear due dates\n"
+    #             "2. For each deliverable with a valid date:\n"
+    #             "   - Create a calendar event with the deliverable title\n"
+    #             "   - Include brief contract context and brief details in the event description\n"
+    #             "   - Set the event date/time based on the due date\n"
+    #             "   - Invite the user ({user_email}) to the event\n"
+    #             "   - Call the calendar tool ONCE\n"
+    #             "   - If it succeeds or says it exists, move on\n"
+    #             "   - Do NOT retry or call multiple times\n\n"
+    #             "3. Skip any deliverables without specific dates\n"
+    #             "4. Provide a summary of events created\n\n"
+    #             "Important: Only create events for deliverables that have explicit due dates "
+    #             "mentioned in the contract. Do not assume or invent dates.\n\n"
+    #             "Contract context available from previous analysis.\n"
+    #             "Once the invitation is sent, DO NOT try to send again. Task is complete."
+
+                
+    #             "User: {user_email}"
+    #         ),
+    #         expected_output=(
+    #             "A summary report of calendar events created including:\n"
+    #             "- Number of events successfully created\n"
+    #             "- List of deliverables with their dates\n"
+    #             "- Any deliverables skipped due to missing dates\n"
+    #             "- Confirmation that the user was invited to all events"
+    #             "Include the phrase '✅ Calendar updates complete' at the end of your output."
+    #         ),
+    #         agent=self.calendar_agent(),
+    #         context_variables=["user_email"]
+    #     )
 
     @task
     def summarize_for_user(self) -> Task:

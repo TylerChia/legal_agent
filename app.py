@@ -3,7 +3,7 @@ from src.legal_agent.brand_legal_crew import ContentCreatorLegalCrew
 from src.legal_agent.legal_crew import LegalAgent
 import os
 import pdfplumber
-from datetime import date
+from datetime import date, datetime, timedelta
 import threading
 import time
 from dotenv import load_dotenv
@@ -14,6 +14,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import markdown2
 import re
+import json
+import pytz
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
 
 load_dotenv()
 
@@ -44,7 +49,7 @@ def before_request():
     session.modified = True
 
 # -------------------------
-# Email Functions (unchanged)
+# Email Functions
 # -------------------------
 def send_summary_email(recipient: str, subject: str, summary_file: str):
     sender_email = os.getenv("SENDER_EMAIL")
@@ -102,6 +107,111 @@ def extract_company_name(contract_text: str) -> str:
         return company_match.group(1).strip()
 
     return ""
+
+# -------------------------
+# Calendar Functions
+# -------------------------
+def send_calendar_invites(user_email: str) -> str:
+    """Send calendar invites for deliverables found in calendar_deliverables.json"""
+    try:
+        # Check if deliverables file exists
+        if not os.path.exists('calendar_deliverables.json'):
+            return "No calendar deliverables found."
+        
+        with open('calendar_deliverables.json', 'r') as f:
+            deliverables = json.load(f)
+        
+        if not deliverables:
+            return "No deliverables to process."
+        
+        # Get Google Calendar credentials
+        token_json_str = os.getenv('GOOGLE_CALENDAR_TOKEN_JSON')
+        if not token_json_str:
+            return "Calendar not configured."
+        
+        token_data = json.loads(token_json_str)
+        creds = Credentials.from_authorized_user_info(token_data, ['https://www.googleapis.com/auth/calendar'])
+        
+        # Refresh token if needed
+        if not creds.valid and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        
+        service = build('calendar', 'v3', credentials=creds)
+        
+        results = []
+        created_count = 0
+        existing_count = 0
+        
+        for deliverable in deliverables:
+            result = create_calendar_event(service, deliverable, user_email)
+            if "created" in result.lower():
+                created_count += 1
+            elif "exists" in result.lower():
+                existing_count += 1
+            results.append(result)
+        
+        summary = f"Calendar invites: {created_count} created, {existing_count} existing"
+        return summary
+        
+    except Exception as e:
+        return f"Calendar error: {str(e)}"
+
+def create_calendar_event(service, deliverable: dict, user_email: str) -> str:
+    """Create a single calendar event with duplicate checking."""
+    try:
+        summary = deliverable.get('summary', '')
+        description = deliverable.get('description', '')
+        start_date = deliverable.get('start_date', '')
+        
+        if not all([summary, start_date]):
+            return f"Skipped: Missing data for {summary}"
+        
+        # Parse date and set to 9 AM PST
+        start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+        pst = pytz.timezone('America/Los_Angeles')
+        start_dt = pst.localize(start_dt.replace(hour=9, minute=0, second=0, microsecond=0))
+        end_dt = start_dt + timedelta(hours=1)
+        
+        # Check for existing events
+        time_min = (start_dt - timedelta(days=1)).isoformat()
+        time_max = (start_dt + timedelta(days=2)).isoformat()
+        
+        events_result = service.events().list(
+            calendarId='primary',
+            timeMin=time_min,
+            timeMax=time_max,
+            q=summary[:20],  # Search by title
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        
+        events = events_result.get('items', [])
+        
+        for event in events:
+            existing_summary = event.get('summary', '').lower()
+            if f"📋 {summary}".lower() in existing_summary:
+                return f"Exists: {summary} on {start_date}"
+        
+        # Create new event
+        event = {
+            "summary": f"📋 {summary}",
+            "description": f"Contract Deliverable\n\n{description}",
+            "start": {"dateTime": start_dt.isoformat(), "timeZone": "America/Los_Angeles"},
+            "end": {"dateTime": end_dt.isoformat(), "timeZone": "America/Los_Angeles"},
+            "attendees": [{"email": user_email}],
+            "reminders": {"useDefault": True},
+        }
+        
+        created_event = service.events().insert(
+            calendarId="primary",
+            body=event,
+            sendUpdates="all"
+        ).execute()
+        
+        return f"Created: {summary} on {start_date}"
+        
+    except Exception as e:
+        return f"Error with {summary}: {str(e)}"
 
 # -------------------------
 # Authentication helpers
@@ -214,11 +324,24 @@ def upload():
         print("✅ Crew completed with result:", result)
 
         try:
+            # Send email summary
             summary_file = "contract_summary.md"
             send_summary_email(user_email, subject_line, summary_file)
-            return jsonify({"success": True, "message": f"Contract processed! Check your email ({user_email})."})
+            
+            # Send calendar invites (only for creator mode)
+            calendar_result = ""
+            if mode == "creator":
+                calendar_result = send_calendar_invites(user_email)
+                print(f"📅 Calendar result: {calendar_result}")
+            
+            message = f"Contract processed! Check your email ({user_email})."
+            if calendar_result:
+                message += f" {calendar_result}"
+                
+            return jsonify({"success": True, "message": message})
+            
         except Exception as e:
-            return jsonify({"success": False, "message": f"Email Error: {str(e)}"}), 500
+            return jsonify({"success": False, "message": f"Error: {str(e)}"}), 500
 
     except Exception as e:
         return jsonify({"success": False, "message": f"Crew Error: {str(e)}"}), 500

@@ -4,7 +4,6 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from dotenv import load_dotenv
 from src.legal_agent.tools.web_search import WebSearchTool
-from src.legal_agent.tools.send_email import SendEmailTool
 
 load_dotenv()
 
@@ -53,8 +52,8 @@ class LegalAgent():
         return Agent(
             role="Legal Research Assistant",
             goal=(
-                "ONLY research if contract has unclear perpetual rights, unusual clauses, or terms you do not understand\n"
-                "Otherwise: 'No research needed'"
+                "Quickly identify and evaluate potential legal and business risks."
+                "Do not make-up information that is not within the text. "
             ),
             backstory=(
                 "You are a skilled legal researcher capable of finding definitions, precedents, and explanations "
@@ -79,28 +78,6 @@ class LegalAgent():
             ),
             verbose=True
         )
-
-
-    # @agent
-    # def email_agent(self) -> Agent:
-    #     return Agent(
-    #         role="Email Delivery Specialist",
-    #         goal=(
-    #             "Your only responsibility is to send the final contract summary email using the SendEmailTool. "
-    #             "You must call the tool to send the email yourself — do NOT describe it in text. "
-    #             "Never output the final answer until the tool is executed successfully."
-    #         ),
-    #         backstory=(
-    #             "You are responsible for securely delivering completed reports to users. "
-    #             "You send the email yourself using the provided SendEmailTool. "
-    #             "You always call the SendEmailTool directly — never skip this step."
-    #             "Do NOT delegate this task to anyone else."
-    #         ),
-    #         verbose=True,
-    #         tools=[SendEmailTool()],
-    #         allow_delegation=False,  # 🚫 disable delegation
-    #         max_iterations=3
-    #     )
 
 
     # === TASKS ===
@@ -144,9 +121,11 @@ class LegalAgent():
             description=(
                 "Search the internet for definitions, precedents, or explanations about unclear terms. "
                 "Summarize findings and cite at least one credible source."
+                "ONLY research if contract has unclear perpetual rights or unusual clauses.\n"
+                "Otherwise: 'No research needed'"
             ),
             expected_output=(
-                "A short paragraph summarizing findings with one or more source links."
+                "Brief research or 'No research needed'"
             ),
             agent=self.legal_researcher()
         )
@@ -171,62 +150,6 @@ class LegalAgent():
             agent=self.user_advocate(),
             output_file="contract_summary.md"
         )
-
-    # @task
-    # def send_summary_email(self) -> Task:
-    #     """Send the influencer contract summary to the creator."""
-    #     return Task(
-    #         description=(
-    #             "Read the file 'contract_summary.md' and send its contents as an email using the SendEmailTool.\n"
-    #             "Call the SendEmailTool directly with the following parameters:\n"
-    #             "- recipient: {user_email}\n"
-    #             "- subject: '{subject_line} company_name' (omit company_name if blank)\n"
-    #             "- body: the full text content of 'contract_summary.md'\n\n"
-    #             "- Important:\n"
-    #             "- DO NOT output JSON.\n"
-    #             "- DO NOT describe what you would do.\n"
-    #             "You MUST ALWAYS execute the SendEmailTool — do NOT describe or simulate sending the email.\n"
-    #             "- You must call the send_email() action directly.\n"
-    #             "- Once you’ve executed the tool successfully, stop.\n"
-    #             "Do NOT include extra metadata or explanations."
-    #         ),
-    #         expected_output=(
-    #             "Successful email delivery confirmation from SendEmailTool."
-    #         ),
-    #         agent=self.email_agent(),
-    #         context_variables=["company_name"],
-    #         requires_execution=True
-    #     )
-
-
-    # @task
-    # def send_summary_email(self) -> Task:
-    #     """Email the final summary report to the user."""
-    #     return Task(
-    #         description=(
-    #             "Using the SendEmailTool tool, read the contract summary from 'contract_summary.md' and send it to the user's email address: {user_email}."
-    #             "Use the subject line format: '{subject_line} company_name' if company_name is available. Otherwise just use subject_line.\n"
-    #             "Use the file content as the email body, include a short introduction, and end with a disclaimer that this is not legal advice. "
-    #             "You must execute the SendEmailTool — do not summarize or explain what you would do. "
-    #             "Once sent, consider the task complete — do NOT try to think further."
-    #             "Output must be a JSON object with exactly these keys: "
-    #             "`recipient` (string, email address), "
-    #             "`subject` (string, subject line), "
-    #             "`body` (string, the full contract summary). "
-    #             "Do NOT include extra fields or metadata."
-    #         ),
-    #         expected_output=(
-    #             'Example format:\n'
-    #             '{\n'
-    #             '  "recipient": "user@example.com",\n'
-    #             '  "subject": "Contract Summary Report - 2025-11-03 - CompanyName",\n'
-    #             '  "body": "Full contract summary here..."\n'
-    #             '}'
-    #         ),
-    #         agent=self.email_agent(),
-    #         context_variables=["company_name"],
-    #         requires_execution=True
-    #     )
 
 
     # === CREW ===

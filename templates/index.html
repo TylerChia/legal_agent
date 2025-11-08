@@ -127,16 +127,18 @@
     
         function showToast(message, type) {
             console.log("🟢 Toast:", message, type);
+    
+            // Clear any existing timeouts
+            if (window.toastTimeout) {
+                clearTimeout(window.toastTimeout);
+                window.toastTimeout = null;
+            }
+            
             toast.classList.remove('hidden');
             toast.classList.remove('success', 'error');
             toast.classList.add(type);
             toastMessage.textContent = message;
-            
-            if (type === 'success') {
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                }, 5000);
-            }
+        
         }
 
     
