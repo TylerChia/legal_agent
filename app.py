@@ -17,9 +17,11 @@ import re
 
 load_dotenv()
 
-os.environ["CREWAI_TRACE"] = "0"
-os.environ["CREWAI_VERBOSE"] = "0"
-os.environ["CREWAI_INTERACTIVE"] = "0"
+os.environ["CREWAI_TRACING_ENABLED"] = "0"
+os.environ["CREWAI_DISABLE_TELEMETRY"] = "1"
+os.environ["CREWAI_DISABLE_TRACING"] = "1"
+os.environ["CREWAI_TELEMETRY"] = "0"
+os.environ["OTEL_SDK_DISABLED"] = "1"
 
 app = Flask(__name__)
 # Use a fixed secret key for session consistency, but ensure it changes in production

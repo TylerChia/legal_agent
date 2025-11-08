@@ -250,7 +250,8 @@ class ContentCreatorLegalCrew():
                 "4. Provide a summary of events created\n\n"
                 "Important: Only create events for deliverables that have explicit due dates "
                 "mentioned in the contract. Do not assume or invent dates.\n\n"
-                "Contract context available from previous analysis."
+                "Contract context available from previous analysis.\n"
+                "Once the invitation is sent, DO NOT try to send again. Task is complete."
             ),
             expected_output=(
                 "A summary report of calendar events created including:\n"
@@ -259,6 +260,7 @@ class ContentCreatorLegalCrew():
                 "- Google Calendar links for each event\n"
                 "- Any deliverables skipped due to missing dates\n"
                 "- Confirmation that the user was invited to all events"
+                "Include the phrase '✅ Calendar updates complete' at the end of your output."
             ),
             agent=self.calendar_agent(),
             context_variables=["user_email"]

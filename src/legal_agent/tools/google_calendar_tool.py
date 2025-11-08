@@ -65,6 +65,24 @@ class SimpleGoogleCalendarTool(BaseTool):
             
             end_dt = start_dt + timedelta(hours=1)  # 1-hour event
 
+            # --- 🧠 Duplicate check ---
+            time_min = start_dt.isoformat()
+            time_max = (start_dt + timedelta(days=1)).isoformat()
+            events_result = service.events().list(
+                calendarId='primary',
+                timeMin=time_min,
+                timeMax=time_max,
+                singleEvents=True,
+                orderBy='startTime'
+            ).execute()
+            events = events_result.get('items', [])
+
+            for e in events:
+                existing_summary = e.get('summary', '').strip().lower()
+                if existing_summary == f"📋 {summary}".lower():
+                    print(f"Duplicate event skipped: {summary} on {start_date}")
+                    return f"Event already exists for {start_date}: {summary}"
+
             event = {
                 "summary": f"📋 {summary}",
                 "description": f"Contract Deliverable\n\n{description}",
