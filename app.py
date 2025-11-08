@@ -111,10 +111,12 @@ def extract_company_name(contract_text: str) -> str:
 # -------------------------
 # Calendar Functions
 # -------------------------
+# -------------------------
+# Calendar Functions
+# -------------------------
 def send_calendar_invites(user_email: str) -> str:
-    """Send calendar invites for deliverables found in calendar_deliverables.json"""
+    """Send calendar invites for deliverables with time handling."""
     try:
-        # Check if deliverables file exists
         if not os.path.exists('calendar_deliverables.json'):
             return "No calendar deliverables found."
         
@@ -151,36 +153,51 @@ def send_calendar_invites(user_email: str) -> str:
             results.append(result)
         
         summary = f"Calendar invites: {created_count} created, {existing_count} existing"
+        print(f"📅 Calendar results: {results}")
         return summary
         
     except Exception as e:
         return f"Calendar error: {str(e)}"
 
 def create_calendar_event(service, deliverable: dict, user_email: str) -> str:
-    """Create a single calendar event with duplicate checking."""
+    """Create a calendar event with time handling and timezone conversion."""
     try:
         summary = deliverable.get('summary', '')
         description = deliverable.get('description', '')
         start_date = deliverable.get('start_date', '')
+        start_time = deliverable.get('start_time')
+        timezone_str = deliverable.get('timezone')
         
         if not all([summary, start_date]):
             return f"Skipped: Missing data for {summary}"
         
-        # Parse date and set to 9 AM PST
+        # Parse the base date
         start_dt = datetime.strptime(start_date, '%Y-%m-%d')
         pst = pytz.timezone('America/Los_Angeles')
-        start_dt = pst.localize(start_dt.replace(hour=9, minute=0, second=0, microsecond=0))
-        end_dt = start_dt + timedelta(hours=1)
+        
+        # Determine if this is an all-day event or timed event
+        if start_time and start_time != 'null':
+            # Timed event - parse time and handle timezone conversion
+            event_config = create_timed_event(start_dt, start_time, timezone_str, pst)
+            event_type = "timed"
+        else:
+            # All-day event
+            event_config = create_all_day_event(start_dt)
+            event_type = "all-day"
         
         # Check for existing events
-        time_min = (start_dt - timedelta(days=1)).isoformat()
-        time_max = (start_dt + timedelta(days=2)).isoformat()
+        if event_type == "timed":
+            time_min = (event_config['start_dt'] - timedelta(hours=2)).isoformat()
+            time_max = (event_config['start_dt'] + timedelta(hours=4)).isoformat()
+        else:
+            time_min = start_dt.isoformat() + 'Z'
+            time_max = (start_dt + timedelta(days=1)).isoformat() + 'Z'
         
         events_result = service.events().list(
             calendarId='primary',
             timeMin=time_min,
             timeMax=time_max,
-            q=summary[:20],  # Search by title
+            q=summary[:20],
             singleEvents=True,
             orderBy='startTime'
         ).execute()
@@ -192,15 +209,16 @@ def create_calendar_event(service, deliverable: dict, user_email: str) -> str:
             if f"📋 {summary}".lower() in existing_summary:
                 return f"Exists: {summary} on {start_date}"
         
-        # Create new event
+        # Create the event
         event = {
             "summary": f"📋 {summary}",
             "description": f"Contract Deliverable\n\n{description}",
-            "start": {"dateTime": start_dt.isoformat(), "timeZone": "America/Los_Angeles"},
-            "end": {"dateTime": end_dt.isoformat(), "timeZone": "America/Los_Angeles"},
-            "attendees": [{"email": user_email}],
             "reminders": {"useDefault": True},
+            "attendees": [{"email": user_email}],
         }
+        
+        # Add start/end based on event type
+        event.update(event_config['event_times'])
         
         created_event = service.events().insert(
             calendarId="primary",
@@ -208,10 +226,77 @@ def create_calendar_event(service, deliverable: dict, user_email: str) -> str:
             sendUpdates="all"
         ).execute()
         
-        return f"Created: {summary} on {start_date}"
+        return f"Created {event_type}: {summary} on {start_date} {start_time or ''}".strip()
         
     except Exception as e:
         return f"Error with {summary}: {str(e)}"
+
+def create_timed_event(start_dt, start_time, original_timezone, target_timezone):
+    """Create configuration for a timed event with timezone conversion."""
+    # Parse the time
+    time_obj = datetime.strptime(start_time, '%H:%M').time()
+    combined_dt = datetime.combine(start_dt, time_obj)
+    
+    # Apply original timezone if specified, otherwise assume it's already in target timezone
+    if original_timezone and original_timezone != 'null':
+        original_tz = convert_timezone_string(original_timezone)
+        if original_tz:
+            combined_dt = original_tz.localize(combined_dt)
+            # Convert to target timezone
+            combined_dt = combined_dt.astimezone(target_timezone)
+        else:
+            # If timezone not recognized, assume target timezone
+            combined_dt = target_timezone.localize(combined_dt)
+    else:
+        # No original timezone specified, assume target timezone
+        combined_dt = target_timezone.localize(combined_dt)
+    
+    end_dt = combined_dt + timedelta(hours=1)
+    
+    return {
+        'start_dt': combined_dt,
+        'event_times': {
+            "start": {"dateTime": combined_dt.isoformat(), "timeZone": "America/Los_Angeles"},
+            "end": {"dateTime": end_dt.isoformat(), "timeZone": "America/Los_Angeles"},
+        }
+    }
+
+def create_all_day_event(start_dt):
+    """Create configuration for an all-day event."""
+    return {
+        'start_dt': start_dt,
+        'event_times': {
+            "start": {"date": start_dt.strftime('%Y-%m-%d')},
+            "end": {"date": (start_dt + timedelta(days=1)).strftime('%Y-%m-%d')},
+        }
+    }
+
+def convert_timezone_string(tz_string):
+    """Convert common timezone abbreviations to pytz timezone objects."""
+    tz_mapping = {
+        'PST': 'America/Los_Angeles',
+        'PDT': 'America/Los_Angeles',
+        'PT': 'America/Los_Angeles',
+        'EST': 'America/New_York', 
+        'EDT': 'America/New_York',
+        'ET': 'America/New_York',
+        'CST': 'America/Chicago',
+        'CDT': 'America/Chicago',
+        'CT': 'America/Chicago',
+        'MST': 'America/Denver',
+        'MDT': 'America/Denver',
+        'MT': 'America/Denver',
+        'UTC': 'UTC',
+        'GMT': 'GMT'
+    }
+    
+    tz_string_upper = tz_string.upper().strip()
+    if tz_string_upper in tz_mapping:
+        try:
+            return pytz.timezone(tz_mapping[tz_string_upper])
+        except:
+            return None
+    return None
 
 # -------------------------
 # Authentication helpers

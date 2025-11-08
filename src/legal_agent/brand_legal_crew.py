@@ -261,18 +261,25 @@ class ContentCreatorLegalCrew():
         """Extract deliverables and due dates for calendar integration."""
         return Task(
             description=(
-                "Extract ALL deliverables with clear due dates from the contract analysis.\n\n"
+                "Extract ALL deliverables with due dates from the contract analysis.\n\n"
                 "For each deliverable, provide:\n"
-                "- summary: Brief title of the deliverable\n"
+                "- summary: Brief title\n"
                 "- description: What needs to be delivered\n" 
-                "- start_date: Due date in YYYY-MM-DD format. Convert to Pacific Standard Time if necessary.\n"
+                "- start_date: Due date in YYYY-MM-DD format\n"
+                "- start_time: Time in HH:MM format (24-hour) if specified, otherwise null\n"
+                "- timezone: Timezone if specified (e.g., PST, EST, UTC), otherwise null\n"
                 "- user_email: {user_email}\n\n"
-                "Only include deliverables with explicit due dates mentioned in the contract.\n"
-                "Skip any without clear dates.\n"
-                "Format as a JSON array."
+                "Look for time indicators like:\n"
+                "- 'by 5:00 PM PST'\n"
+                "- 'due at 14:00 EST'  \n"
+                "- 'submission deadline 9am PT'\n"
+                "- 'before 3:00 PM Pacific Time'\n\n"
+                "If no specific time is mentioned, set start_time to null for all-day events.\n"
+                "Convert all times to 24-hour format (14:00 for 2:00 PM).\n"
+                "Only include deliverables with explicit due dates."
             ),
             expected_output=(
-                "JSON array of deliverables with 'summary', 'description','start_date', 'user_email'"
+                "JSON array of deliverables with 'summary', 'description', 'start_date', 'start_time, 'time_zone', 'user_email'"
             ),
             agent=self.researcher(),  # Use researcher since they already parse the contract
             context_variables=["user_email"],
