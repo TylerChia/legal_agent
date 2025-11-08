@@ -22,11 +22,7 @@ from googleapiclient.discovery import build
 
 load_dotenv()
 
-os.environ["CREWAI_TRACING_ENABLED"] = "0"
-os.environ["CREWAI_DISABLE_TELEMETRY"] = "1"
-os.environ["CREWAI_DISABLE_TRACING"] = "1"
-os.environ["CREWAI_TELEMETRY"] = "0"
-os.environ["OTEL_SDK_DISABLED"] = "1"
+os.environ["CREWAI_TELEMETRY"] = "false"
 
 app = Flask(__name__)
 # Use a fixed secret key for session consistency, but ensure it changes in production
@@ -361,7 +357,7 @@ def run_crew_with_timeout(crew, inputs, timeout=CREW_TIMEOUT):
     def target():
         try:
             import os
-            os.environ["CREWAI_INTERACTIVE"] = "0"
+            os.environ["CREWAI_TELEMETRY"] = "false"
             result_container[0] = crew.kickoff(inputs=inputs)
         except Exception as e:
             result_container[0] = e

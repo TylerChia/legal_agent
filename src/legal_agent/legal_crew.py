@@ -161,6 +161,6 @@ class LegalAgent():
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            interactive=False,  # ← CRITICAL: Disable interactive prompts in production
-            memory=False  # ← Optional: Disable memory to reduce complexity
+            memory=False,  # ← Optional: Disable memory to reduce complexity
+            embedder=None  # ← Optional: Disable memory to reduce complexity
         )
