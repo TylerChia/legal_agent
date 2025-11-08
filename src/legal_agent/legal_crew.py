@@ -1,5 +1,7 @@
 import os
-os.environ["CREWAI_TELEMETRY"] = "false"
+import sys
+os.environ['CREWAI_TELEMETRY'] = 'false'
+sys.stdin = None 
 from dotenv import load_dotenv
 load_dotenv()
 

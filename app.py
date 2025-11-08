@@ -1,5 +1,7 @@
 import os
-os.environ["CREWAI_TELEMETRY"] = "false"
+import sys
+os.environ['CREWAI_TELEMETRY'] = 'false'
+sys.stdin = None 
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -357,7 +359,7 @@ def run_crew_with_timeout(crew, inputs, timeout=CREW_TIMEOUT):
     def target():
         try:
             import os
-            os.environ["CREWAI_TELEMETRY"] = "false"
+            os.environ['CREWAI_TELEMETRY'] = 'false'
             result_container[0] = crew.kickoff(inputs=inputs)
         except Exception as e:
             result_container[0] = e
