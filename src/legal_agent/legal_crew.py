@@ -27,8 +27,7 @@ class LegalAgent():
                 "You can quickly identify sections like payment terms, confidentiality, termination, "
                 "and liability, and rewrite them in structured, easy-to-parse text for further analysis."
             ),
-            verbose=True,
-            interactive=False
+            verbose=True
         )
 
 
@@ -45,8 +44,7 @@ class LegalAgent():
                 "You are a cautious and thorough legal analyst trained to spot red flags in agreements. "
                 "You flag any terms that might be unfair, vague, one-sided, or harmful to the user’s rights."
             ),
-            verbose=True,
-            interactive=False
+            verbose=True
         )
 
     @agent
@@ -55,8 +53,8 @@ class LegalAgent():
         return Agent(
             role="Legal Research Assistant",
             goal=(
-                "Retrieve and summarize up-to-date, relevant legal information from the web "
-                "to clarify complex terms or provide real-world examples."
+                "ONLY research if contract has unclear perpetual rights, unusual clauses, or terms you do not understand\n"
+                "Otherwise: 'No research needed'"
             ),
             backstory=(
                 "You are a skilled legal researcher capable of finding definitions, precedents, and explanations "
@@ -65,7 +63,7 @@ class LegalAgent():
             verbose=True,
             tools=[WebSearchTool()], 
             allow_delegation=False,
-            interactive=False
+            max_iter=1
         )
 
 
@@ -79,8 +77,7 @@ class LegalAgent():
                 "You are an empathetic communicator who translates legal findings into simple, actionable advice "
                 "for non-lawyers. You never provide legal advice — only educational summaries."
             ),
-            verbose=True,
-            interactive=False
+            verbose=True
         )
 
 

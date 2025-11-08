@@ -46,9 +46,27 @@ class ContentCreatorLegalCrew():
                 "exclusivity, content ownership, licensing (perpetual/limited), attribution, moral clauses, "
                 "and termination/kill fees. Produce structured outputs that downstream agents can consume."
             ),
-            verbose=True,
-            interactive=False
+            verbose=True
         )
+
+    # @agent
+    # def risk_analyzer(self) -> Agent:
+    #     """Evaluates influencer-brand deal contracts for risks."""
+    #     return Agent(
+    #         role="Brand Deal Risk & Rights Analyst",
+    #         goal=(
+    #             "Identify and evaluate legal and business risks within influencer-brand contracts. "
+    #             "Highlight clauses that could negatively impact the creator’s rights, revenue, or creative control."
+    #             "Do not make-up information that is not within the text. "
+    #         ),
+    #         backstory=(
+    #             "You are an experienced contract reviewer specializing in influencer marketing and brand partnerships. "
+    #             "You understand common risks such as content ownership, exclusivity, perpetual usage rights, "
+    #             "royalty clauses, and unfair deliverable obligations. You help creators protect their interests "
+    #             "by identifying and explaining potential pitfalls clearly."
+    #         ),
+    #         verbose=True,
+    #     )
 
     @agent
     def risk_analyzer(self) -> Agent:
@@ -56,19 +74,35 @@ class ContentCreatorLegalCrew():
         return Agent(
             role="Brand Deal Risk & Rights Analyst",
             goal=(
-                "Identify and evaluate legal and business risks within influencer-brand contracts. "
-                "Highlight clauses that could negatively impact the creator’s rights, revenue, or creative control."
+                "Quickly identify and evaluate legal and business risks within influencer-brand contracts. "
                 "Do not make-up information that is not within the text. "
             ),
             backstory=(
-                "You are an experienced contract reviewer specializing in influencer marketing and brand partnerships. "
-                "You understand common risks such as content ownership, exclusivity, perpetual usage rights, "
-                "royalty clauses, and unfair deliverable obligations. You help creators protect their interests "
-                "by identifying and explaining potential pitfalls clearly."
+                "Fast risk assessment specialist."
             ),
             verbose=True,
-            interactive=False
         )
+
+    # @agent
+    # def legal_researcher(self) -> Agent:
+    #     """Finds and summarizes relevant influencer marketing and contract info online."""
+    #     return Agent(
+    #         role="Influencer Contract Legal Researcher",
+    #         goal=(
+    #             "Retrieve and summarize up-to-date, relevant legal and business information about "
+    #             "influencer-brand contracts, including usage rights, ownership,"
+    #             "and fair compensation standards from the web to clarify complex terms or provide real-world examples from the input text."
+    #             "Do not make-up information that is not within the text. "
+    #         ),
+    #         backstory=(
+    #             "You are an expert legal researcher specializing in influencer marketing, digital rights, "
+    #             "and brand deal compliance. You understand how brands and creators interact under modern law "
+    #             "and can find relevant definitions, legal precedents, or best practices to clarify contract terms."
+    #         ),
+    #         verbose=True,
+    #         tools=[WebSearchTool()],
+    #         allow_delegation=False,
+    #     )
 
     @agent
     def legal_researcher(self) -> Agent:
@@ -76,20 +110,15 @@ class ContentCreatorLegalCrew():
         return Agent(
             role="Influencer Contract Legal Researcher",
             goal=(
-                "Retrieve and summarize up-to-date, relevant legal and business information about "
-                "influencer-brand contracts, including usage rights, ownership, FTC disclosure laws, "
-                "and fair compensation standards from the web to clarify complex terms or provide real-world examples from the input text."
-                "Do not make-up information that is not within the text. "
+                "Quickly research unclear contract terms if needed."
             ),
             backstory=(
-                "You are an expert legal researcher specializing in influencer marketing, digital rights, "
-                "and brand deal compliance. You understand how brands and creators interact under modern law "
-                "and can find relevant definitions, legal precedents, or best practices to clarify contract terms."
+                "Fast legal researcher."
             ),
             verbose=True,
             tools=[WebSearchTool()],
             allow_delegation=False,
-            interactive=False
+            max_iter=1
         )
 
 
@@ -100,18 +129,16 @@ class ContentCreatorLegalCrew():
             role="Influencer Contract Advisor",
             goal=(
                 "Explain the influencer-brand contract in simple, creator-friendly language, "
-                "highlighting what actions the creator needs to take, what rights they may be giving up, "
-                "and any important due dates or red flags."
+                "highlighting any important due dates or red flags."
                 "Do not make-up information that is not within the text. "
             ),
             backstory=(
-                "You are an empathetic and knowledgeable contract explainer who helps social media creators "
+                "You are a knowledgeable contract explainer who helps social media creators "
                 "understand their brand deals. You clearly outline deliverables, due dates, payment structure, "
                 "and potential legal risks — like exclusivity, perpetual usage rights, or content ownership — "
                 "in a way that’s informative but not legal advice."
             ),
-            verbose=True,
-            interactive=False
+            verbose=True
         )
 
     @agent
@@ -133,8 +160,7 @@ class ContentCreatorLegalCrew():
             verbose=True,
             tools=[SimpleGoogleCalendarTool()],
             allow_delegation=False,
-            max_iterations=1,
-            interactive=False
+            max_iter=1
         )
 
 
@@ -186,48 +212,77 @@ class ContentCreatorLegalCrew():
         )
 
 
+    # @task
+    # def analyze_risks(self) -> Task:
+    #     """Evaluate influencer-brand contract clauses for potential legal or business risks."""
+    #     return Task(
+    #         description=(
+    #             "Examine the structured contract clauses produced by the previous step.\n\n"
+    #             "Do not make-up information that is not within the contract text. "
+    #             "For each clause, assess potential risks or concerns to the creator such as:\n"
+    #             "- **Ownership & Usage Rights**: Does the brand gain perpetual or exclusive rights to the content?\n"
+    #             "- **Exclusivity**: Does it prevent the creator from working with other brands in the same category?\n"
+    #             "- **Approval & Revisions**: Are there unreasonable approval or reshoot terms?\n"
+    #             "- **Royalties or Compensation**: Are payment terms vague or delayed?\n"
+    #             "- **Termination or Liability**: Are there penalties or clauses unfairly favoring the brand?\n\n"
+    #             "Rate each clause as Low, Medium, or High risk, and briefly explain why.\n"
+    #             "Output a JSON report summarizing each clause with fields:\n"
+    #             "- `clause_title`\n"
+    #             "- `risk_level`\n"
+    #             "- `risk_reason`"
+    #         ),
+    #         expected_output=(
+    #             "A JSON object containing a list of clauses with their associated `risk_level`, "
+    #             "`risk_reason`"
+    #         ),
+    #         agent=self.risk_analyzer()
+    #     )
+
     @task
     def analyze_risks(self) -> Task:
         """Evaluate influencer-brand contract clauses for potential legal or business risks."""
         return Task(
             description=(
-                "Examine the structured contract clauses produced by the previous step.\n\n"
-                "Do not make-up information that is not within the contract text. "
-                "For each clause, assess potential risks or concerns to the creator such as:\n"
-                "- **Ownership & Usage Rights**: Does the brand gain perpetual or exclusive rights to the content?\n"
-                "- **Exclusivity**: Does it prevent the creator from working with other brands in the same category?\n"
-                "- **Approval & Revisions**: Are there unreasonable approval or reshoot terms?\n"
-                "- **Royalties or Compensation**: Are payment terms vague or delayed?\n"
-                "- **Termination or Liability**: Are there penalties or clauses unfairly favoring the brand?\n\n"
-                "Rate each clause as Low, Medium, or High risk, and briefly explain why.\n"
-                "Output a JSON report summarizing each clause with fields:\n"
-                "- `clause_title`\n"
-                "- `risk_level`\n"
-                "- `risk_reason`"
+                "QUICKLY assess risks in the parsed contract data.\n"
+                "Focus on: ownership rights, exclusivity, payment risks.\n"
+                "Output: JSON with clause_title, risk_level, risk_reason"
             ),
             expected_output=(
-                "A JSON object containing a list of clauses with their associated `risk_level`, "
-                "`risk_reason`"
+                "JSON with key risks"
             ),
             agent=self.risk_analyzer()
         )
 
+
+    # @task
+    # def research_clarifications(self) -> Task:
+    #     """Research unclear or concerning influencer contract terms online."""
+    #     return Task(
+    #         description=(
+    #             "Search the internet for definitions or real-world context for any unclear or risky terms "
+    #             "in the influencer-brand contract, particularly related to:\n"
+    #             "- Content ownership and usage rights (e.g., perpetual use, whitelisting)\n"
+    #             "- Exclusivity and competition restrictions\n"
+    #             "- Royalties, licensing, or revenue sharing\n"
+    #             "- Creator compensation norms and rights under influencer marketing law\n\n"
+    #             "Summarize your findings clearly and cite at least one credible, recent source (e.g., FTC.gov, major law firm blogs, creator advocacy sites)."
+    #         ),
+    #         expected_output=(
+    #             "A paragraph or short list summarizing findings with one or more cited, credible sources."
+    #         ),
+    #         agent=self.legal_researcher()
+    #     )
 
     @task
     def research_clarifications(self) -> Task:
         """Research unclear or concerning influencer contract terms online."""
         return Task(
             description=(
-                "Search the internet for definitions or real-world context for any unclear or risky terms "
-                "in the influencer-brand contract, particularly related to:\n"
-                "- Content ownership and usage rights (e.g., perpetual use, whitelisting)\n"
-                "- Exclusivity and competition restrictions\n"
-                "- Royalties, licensing, or revenue sharing\n"
-                "- Creator compensation norms and rights under influencer marketing law\n\n"
-                "Summarize your findings clearly and cite at least one credible, recent source (e.g., FTC.gov, major law firm blogs, creator advocacy sites)."
+                "ONLY research if contract has unclear perpetual rights or unusual clauses.\n"
+                "Otherwise: 'No research needed'"
             ),
             expected_output=(
-                "A paragraph or short list summarizing findings with one or more cited, credible sources."
+                "Brief research or 'No research needed'"
             ),
             agent=self.legal_researcher()
         )
@@ -257,7 +312,6 @@ class ContentCreatorLegalCrew():
                 "A summary report of calendar events created including:\n"
                 "- Number of events successfully created\n"
                 "- List of deliverables with their dates\n"
-                "- Google Calendar links for each event\n"
                 "- Any deliverables skipped due to missing dates\n"
                 "- Confirmation that the user was invited to all events"
                 "Include the phrase '✅ Calendar updates complete' at the end of your output."
@@ -284,7 +338,6 @@ class ContentCreatorLegalCrew():
                 "   - Exclusivity or non-compete clauses\n"
                 "   - Usage rights or whitelisting permissions\n"
                 "   - Royalties, licensing, or perpetual usage terms\n"
-                "   - FTC or disclosure requirements\n\n"
                 "End the report with a clear disclaimer that this is not legal advice — "
                 "it is an educational summary to help the creator understand their deal."
             ),

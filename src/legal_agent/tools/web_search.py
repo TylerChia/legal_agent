@@ -54,13 +54,14 @@ class WebSearchTool(BaseTool):
                 "api_key": tavily_api_key,
                 "query": query,
                 "search_depth": "advanced",  # can be 'basic' or 'advanced'
-                "max_results": 5,
+                "max_results": 3,
+                "timeout": 5,
                 "include_answer": True,      # return summarized text
                 "include_domains": [],       # optionally restrict domains
                 "include_raw_content": False
             }
 
-            response = requests.post(api_url, json=payload, timeout=15)
+            response = requests.post(api_url, json=payload, timeout=5)
             response.raise_for_status()
             data = response.json()
 
