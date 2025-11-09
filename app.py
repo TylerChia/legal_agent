@@ -1,6 +1,7 @@
 import os
 import sys
-
+import threading
+import io
 # Disable all CrewAI telemetry and tracing
 os.environ['CREWAI_TELEMETRY'] = 'false'
 os.environ['CREWAI_TRACING'] = 'false'
@@ -32,7 +33,6 @@ from src.legal_agent.brand_legal_crew import ContentCreatorLegalCrew
 from src.legal_agent.legal_crew import LegalAgent
 import pdfplumber
 from datetime import date, datetime, timedelta
-import threading
 import time
 
 from werkzeug.security import check_password_hash
