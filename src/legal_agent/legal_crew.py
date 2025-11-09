@@ -170,5 +170,6 @@ class LegalAgent():
             process=Process.sequential,
             verbose=True,
             memory=False,  # ← Optional: Disable memory to reduce complexity
-            embedder=None  # ← Optional: Disable memory to reduce complexity
+            embedder=None,  # ← Optional: Disable memory to reduce complexity
+            tracing=False
         )

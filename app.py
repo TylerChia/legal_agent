@@ -3,8 +3,10 @@ import sys
 import threading
 import io
 # Disable all CrewAI telemetry and tracing
-os.environ['CREWAI_TELEMETRY'] = 'false'
 os.environ['CREWAI_TRACING'] = 'false'
+os.environ['CREWAI_DISABLE_TELEMETRY'] = 'true'
+os.environ['CREWAI_DISABLE_TRACING'] = 'true'
+os.environ['CREWAI_TELEMETRY'] = 'false'
 os.environ['OTEL_SDK_DISABLED'] = 'true'
 
 # Mock the input function to prevent any interactive prompts

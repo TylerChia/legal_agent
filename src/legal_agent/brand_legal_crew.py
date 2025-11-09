@@ -390,5 +390,6 @@ class ContentCreatorLegalCrew():
             process=Process.sequential,
             verbose=True,
             memory=False,  # ← Optional: Disable memory to reduce complexity
-            embedder=None  # Disable embedder
+            embedder=None,  # Disable embedder
+            tracing=False
         )
