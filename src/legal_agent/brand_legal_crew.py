@@ -94,22 +94,22 @@ class ContentCreatorLegalCrew():
     #         allow_delegation=False,
     #     )
 
-    @agent
-    def legal_researcher(self) -> Agent:
-        """Finds and summarizes relevant influencer marketing and contract info online."""
-        return Agent(
-            role="Influencer Contract Legal Researcher",
-            goal=(
-                "Quickly research unclear contract terms if needed."
-            ),
-            backstory=(
-                "Fast legal researcher."
-            ),
-            verbose=True,
-            tools=[WebSearchTool()],
-            allow_delegation=False,
-            max_iter=1
-        )
+    # @agent
+    # def legal_researcher(self) -> Agent:
+    #     """Finds and summarizes relevant influencer marketing and contract info online."""
+    #     return Agent(
+    #         role="Influencer Contract Legal Researcher",
+    #         goal=(
+    #             "Quickly research unclear contract terms if needed."
+    #         ),
+    #         backstory=(
+    #             "Fast legal researcher."
+    #         ),
+    #         verbose=True,
+    #         tools=[WebSearchTool()],
+    #         allow_delegation=False,
+    #         max_iter=1
+    #     )
 
 
     @agent
@@ -248,19 +248,19 @@ class ContentCreatorLegalCrew():
     #         agent=self.legal_researcher()
     #     )
 
-    @task
-    def research_clarifications(self) -> Task:
-        """Research unclear or concerning influencer contract terms online."""
-        return Task(
-            description=(
-                "ONLY research if contract has unclear perpetual rights or unusual clauses.\n"
-                "Otherwise: 'No research needed'"
-            ),
-            expected_output=(
-                "Brief research or 'No research needed'"
-            ),
-            agent=self.legal_researcher()
-        )
+    # @task
+    # def research_clarifications(self) -> Task:
+    #     """Research unclear or concerning influencer contract terms online."""
+    #     return Task(
+    #         description=(
+    #             "ONLY research if contract has unclear perpetual rights or unusual clauses.\n"
+    #             "Otherwise: 'No research needed'"
+    #         ),
+    #         expected_output=(
+    #             "Brief research or 'No research needed'"
+    #         ),
+    #         agent=self.legal_researcher()
+    #     )
 
     @task
     def extract_deliverables_for_calendar(self) -> Task:

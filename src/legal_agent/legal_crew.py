@@ -52,24 +52,24 @@ class LegalAgent():
             verbose=True
         )
 
-    @agent
-    def legal_researcher(self) -> Agent:
-        """Finds and summarizes relevant legal info online."""
-        return Agent(
-            role="Legal Research Assistant",
-            goal=(
-                "Quickly identify and evaluate potential legal and business risks."
-                "Do not make-up information that is not within the text. "
-            ),
-            backstory=(
-                "You are a skilled legal researcher capable of finding definitions, precedents, and explanations "
-                "online using trusted sources and summarizing findings concisely."
-            ),
-            verbose=True,
-            tools=[WebSearchTool()], 
-            allow_delegation=False,
-            max_iter=1
-        )
+    # @agent
+    # def legal_researcher(self) -> Agent:
+    #     """Finds and summarizes relevant legal info online."""
+    #     return Agent(
+    #         role="Legal Research Assistant",
+    #         goal=(
+    #             "Quickly identify and evaluate potential legal and business risks."
+    #             "Do not make-up information that is not within the text. "
+    #         ),
+    #         backstory=(
+    #             "You are a skilled legal researcher capable of finding definitions, precedents, and explanations "
+    #             "online using trusted sources and summarizing findings concisely."
+    #         ),
+    #         verbose=True,
+    #         tools=[WebSearchTool()], 
+    #         allow_delegation=False,
+    #         max_iter=1
+    #     )
 
 
     @agent
@@ -120,21 +120,21 @@ class LegalAgent():
             agent=self.risk_analyzer()
         )
 
-    @task
-    def research_clarifications(self) -> Task:
-        """Research unclear or complex clauses online."""
-        return Task(
-            description=(
-                "Search the internet for definitions, precedents, or explanations about unclear terms. "
-                "Summarize findings and cite at least one credible source."
-                "ONLY research if contract has unclear perpetual rights or unusual clauses.\n"
-                "Otherwise: 'No research needed'"
-            ),
-            expected_output=(
-                "Brief research or 'No research needed'"
-            ),
-            agent=self.legal_researcher()
-        )
+    # @task
+    # def research_clarifications(self) -> Task:
+    #     """Research unclear or complex clauses online."""
+    #     return Task(
+    #         description=(
+    #             "Search the internet for definitions, precedents, or explanations about unclear terms. "
+    #             "Summarize findings and cite at least one credible source."
+    #             "ONLY research if contract has unclear perpetual rights or unusual clauses.\n"
+    #             "Otherwise: 'No research needed'"
+    #         ),
+    #         expected_output=(
+    #             "Brief research or 'No research needed'"
+    #         ),
+    #         agent=self.legal_researcher()
+    #     )
 
 
     @task
