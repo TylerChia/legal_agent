@@ -1,10 +1,18 @@
 import os
 import sys
+
+# Disable all CrewAI telemetry and tracing
 os.environ['CREWAI_TELEMETRY'] = 'false'
 os.environ['CREWAI_TRACING'] = 'false'
 os.environ['OTEL_SDK_DISABLED'] = 'true'
 
-sys.stdin = None 
+# Mock the input function to prevent any interactive prompts
+import builtins
+def mock_input(*args, **kwargs):
+    return 'n'  # Always return 'n' for no
+
+builtins.input = mock_input
+sys.stdin = None
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -28,6 +36,14 @@ import pytz
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
+
+# Patch CrewAI's tracing after import
+try:
+    from crewai.events.listeners.tracing import utils
+    if hasattr(utils, 'get_input'):
+        utils.get_input = lambda *args, **kwargs: None
+except:
+    pass
 
 app = Flask(__name__)
 # Use a fixed secret key for session consistency, but ensure it changes in production
