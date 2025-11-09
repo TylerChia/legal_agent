@@ -12,6 +12,17 @@ def mock_input(*args, **kwargs):
     return 'n'  # Always return 'n' for no
 
 builtins.input = mock_input
+
+# Suppress thread exceptions related to stdin
+def thread_exception_handler(args):
+    if "lost sys.stdin" in str(args.exc_value) or "get_input" in str(args.exc_traceback):
+        # Silently ignore stdin errors from telemetry
+        return
+    # For other exceptions, use the default handler
+    sys.__excepthook__(args.exc_type, args.exc_value, args.exc_traceback)
+
+threading.excepthook = thread_exception_handler
+
 sys.stdin = None
 from dotenv import load_dotenv
 load_dotenv()
@@ -37,13 +48,23 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
-# Patch CrewAI's tracing after import
+# Patch CrewAI's tracing after import - more aggressive version
 try:
     from crewai.events.listeners.tracing import utils
+    
+    # Replace the entire get_input function
+    def silent_get_input(*args, **kwargs):
+        return None
+    
     if hasattr(utils, 'get_input'):
-        utils.get_input = lambda *args, **kwargs: None
-except:
-    pass
+        utils.get_input = silent_get_input
+    
+    # Also try to disable the print statement
+    if hasattr(utils, 'print_telemetry_prompt'):
+        utils.print_telemetry_prompt = lambda *args, **kwargs: None
+        
+except Exception as e:
+    print(f"Note: Could not patch CrewAI tracing: {e}")
 
 app = Flask(__name__)
 # Use a fixed secret key for session consistency, but ensure it changes in production
@@ -377,8 +398,6 @@ def run_crew_with_timeout(crew, inputs, timeout=CREW_TIMEOUT):
     result_container = [None]
     def target():
         try:
-            import os
-            os.environ['CREWAI_TELEMETRY'] = 'false'
             result_container[0] = crew.kickoff(inputs=inputs)
         except Exception as e:
             result_container[0] = e
