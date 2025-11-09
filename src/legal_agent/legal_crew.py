@@ -1,5 +1,7 @@
 import os
 os.environ['CREWAI_TELEMETRY'] = 'false'
+os.environ['CREWAI_TRACING'] = 'false'
+os.environ['OTEL_SDK_DISABLED'] = 'true'
 
 from dotenv import load_dotenv
 load_dotenv()
